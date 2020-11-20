@@ -264,6 +264,8 @@ var decrypt = function(encryptedText, password, verificationToken) {
     }
 }
 
+
+
 var createPostButton = document.getElementById("createPostButton");
 var onCreatePostButtonClick = function() {
     var text = document.getElementById("text");
@@ -283,10 +285,66 @@ var onCreatePostButtonClick = function() {
     }
 
     var passwordProtected = false;
+    var verificationToken = null;
+
     if (password.value) {
         passwordProtected = true;
-        var verificationToken = generateVerificationToken(text.value, password.value);
+        verificationToken = generateVerificationToken(text.value, password.value);
+        var text = encrypt(text.value, password.value);
     }
+    
+    var deleteAfterViewsValue = parseInt(deleteAfterViews.value, 10);
+    if (!deleteAfterViewsValue) {
+        return Swal.fire(
+            "Invalid Value",
+            "Please enter a valid integer value for number of views after which the post should be deleted.",
+            "error"
+        );
+    }
+    if (deleteAfterViewsValue < 1) {
+        return Swal.fire(
+            "Invalid Value",
+            "Please enter a valid positive integer value for number of views after which the post should be deleted.",
+            "error"
+        );
+    }
+
+    data = {
+        "data": text,
+        "passwordProtected": passwordProtected,
+        "verificationToken": verificationToken,
+        "syntaxHighlighting": syntaxHighlighting.value,
+        "deleteAfterTime": parseInt(deleteAfterTime.value, 10),
+        "deleteAfterViews": deleteAfterViewsValue,
+        "hideTimeOfCreation": hideTimeOfCreation.checked,
+        "hideNumberOfViews": hideNumberOfViews.checked
+    }
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+
+            }
+            else if (this.status == 429) {
+
+            }
+            else {
+
+            }
+        }
+    };
+    xhttp.open("POST", window.location.href + "/api/create-post", true);
+    xhttp.send(JSON.stringify(data));
 }
 
 createPostButton.addEventListener("click", onCreatePostButtonClick);
+
+// text = "abcd";
+// password = "1234";
+// var verificationToken = generateVerificationToken(text, password);
+// console.log(verificationToken);
+// encryptedText = encrypt(text, password)
+// console.log(encryptedText);
+
+// decryptedText = decrypt(encryptedText, password, verificationToken);
+// console.log(decryptedText);
