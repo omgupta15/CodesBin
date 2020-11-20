@@ -12,7 +12,7 @@ def getDatabase():
         database = "CodesBin"
     )
 
-app = flask.Flask(__name__)
+app = flask.Flask(__name__, static_folder = "resources/")
 limiter = flask_limiter.Limiter(app, key_func = get_remote_address)
 
 project = {
@@ -20,6 +20,18 @@ project = {
     "website": "https://codesbin.my.to",
     "host": "codesbin.my.to"
 }
+
+@app.route("/", methods = ["GET"])
+@limiter.limit("1/second")
+def index():
+    args = flask.request.args
+    data = flask.request.get_data(as_text = True)
+    headers = flask.request.headers
+    cookies = flask.request.cookies
+    method = flask.request.method
+    ip = flask.request.remote_addr
+
+    return flask.render_template("index.html", config = project)
 
 ####################################################################################
 
