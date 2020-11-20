@@ -4,6 +4,8 @@
 
 body {
     background-image: url("../img/background.png");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 #navbar {
