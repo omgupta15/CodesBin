@@ -228,3 +228,65 @@ $(window).scroll(function(){
         $("body").css("background-position", "center -" + maximumScroll + "px");
     }
 }).trigger("scroll");
+
+var generateMD5 = function(text) {
+    return CryptoJS.MD5(text).toString();
+}
+
+var generateVerificationToken = function(text, password) {
+    return generateMD5(text + generateMD5(password).toString()).toString();
+}
+
+var encrypt = function(text, password) {
+    var iv = CryptoJS.lib.WordArray.random(16);
+    var encrypted = CryptoJS.AES.encrypt(text, CryptoJS.enc.Utf8.parse(generateMD5(password)), {iv: iv});
+    return iv.concat(encrypted.ciphertext).toString(CryptoJS.enc.Base64);
+}
+
+var decrypt = function(encryptedText, password, verificationToken) {
+    try {
+        var ciphertext = CryptoJS.enc.Base64.parse(encryptedText);
+        var iv = ciphertext.clone();
+        iv.sigBytes = 16;
+        iv.clamp();
+        ciphertext.words.splice(0, 4);
+        ciphertext.sigBytes -= 16;
+        var decrypted = CryptoJS.AES.decrypt({ciphertext: ciphertext}, CryptoJS.enc.Utf8.parse(generateMD5(password)), {iv: iv});
+        var decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+
+        if (generateVerificationToken(decryptedText, password) == verificationToken) {
+            return {success: true, text: decryptedText};
+        }
+        return {success: false};
+    }
+    catch (e) {
+        return {success: false};
+    }
+}
+
+var createPostButton = document.getElementById("createPostButton");
+var onCreatePostButtonClick = function() {
+    var text = document.getElementById("text");
+    var password = document.getElementById("password");
+    var syntaxHighlighting = document.getElementById("syntax-highlighting");
+    var deleteAfterViews = document.getElementById("delete-after-views");
+    var deleteAfterTime = document.getElementById("delete-after-time");
+    var hideTimeOfCreation = document.getElementById("hide-time-of-creation");
+    var hideNumberOfViews = document.getElementById("hide-number-of-views");
+
+    if (!text.value) {
+        return Swal.fire(
+            "No Text",
+            "The text box is empty. Please enter the text that you want to share!",
+            "error"
+        );
+    }
+
+    var passwordProtected = false;
+    if (password.value) {
+        passwordProtected = true;
+        var verificationToken = generateVerificationToken(text.value, password.value);
+    }
+}
+
+createPostButton.addEventListener("click", onCreatePostButtonClick);
