@@ -198,3 +198,13 @@ for (var name in languages) {
     optGroup.appendChild(element);
 }
 
+$(window).bind("resize", function () {
+    var width = $(this).width();
+    if (392 < width && width < 768) {
+        $("#newPostButton").removeClass("btn-lg").removeClass("btn-sm");
+    } else if (width >= 768) {
+        $("#newPostButton").removeClass("btn-sm").addClass("btn-lg");
+    } else {
+        $("#newPostButton").removeClass("btn-lg").addClass("btn-sm");
+    }
+}).trigger('resize');
