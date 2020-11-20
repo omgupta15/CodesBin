@@ -105,7 +105,7 @@ def createPost():
     qr.make()
     image = qr.make_image()
     image.save(os.getcwd() + qrCodeUrl)
-    
+
     with getDatabase() as database:
         with database.cursor() as cursor:
             cursor.execute("""
@@ -147,6 +147,12 @@ def createPost():
                     -1
                 )
             )
+
+    return flask.jsonify({
+        "success": True,
+        "url": url,
+        "qrCodeUrl": project["website"] + qrCodeUrl.strip("/")
+    })
 
 def generateToken(size):
     return "".join([random.choice(string.ascii_letters + string.digits + "_" + "-") for _ in range(size)])
