@@ -3,9 +3,10 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>CodesBin - Share Code Snippets & Texts securely</title>
+    <title>{{ config["name"] }} - Share Code Snippets & Texts securely</title>
 
-    <link rel="icon" href="resources/img/logo.svg">
+    <link rel="icon" type="image/svg" href="/resources/img/logo.png">
+    <link rel="shortcut icon" type="image/svg" href="/resources/img/logo.png">
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
@@ -23,10 +24,12 @@
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample07" aria-controls="navbarsExample07" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <button class="btn btn-primary btn-lg text-right text-uppercase font-weight-bold">
-            <i class="fal fa-file-plus"></i>
-            New
-        </button>
+        <a href="/">
+            <button class="btn btn-primary btn-lg text-right text-uppercase font-weight-bold">
+                <i class="fal fa-file-plus"></i>
+                New
+            </button>
+        </a>
       </div>
     </nav>
 
@@ -45,13 +48,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="font-weight-bold" for="syntaxHighlighting">Syntax Highlighting</label>
-                    <select class="form-control" name="syntaxHighlighting" id="syntax-highlighting" style="border: 1.5px solid #a2a4a6">
+                    <label class="font-weight-bold" for="syntax-highlighting">Syntax Highlighting</label>
+                    <select class="form-control" name="syntax-highlighting" id="syntax-highlighting" style="border: 1.5px solid #a2a4a6">
                         <option value="code">Source Code</option>
                         <option value="plain">Plain Text</option>
                         <optgroup label="Programming Languages" id="programming-languages-opt">
                         </optgroup>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="font-weight-bold" for="delete-after-views">Delete after</label>
+                    <input class="" type="number" name="delete-after-views" id="delete-after-views" placeholder="0" style="border: 1.5px solid #a2a4a6">
+                    <label class="font-weight-bold" for="delete-after-views">Views</label>
                 </div>
             </div>
         </div>
