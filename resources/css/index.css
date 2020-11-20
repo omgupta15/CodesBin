@@ -1,0 +1,23 @@
+* {
+    font-family: 'Open Sans', sans-serif;
+}
+
+body {
+    background-image: url("../img/background.png");
+}
+
+#navbar {
+    background-color: #042C4C;
+}
+
+#create-post-header {
+    background-color: #043459;
+}
+
+.navbar-logo {
+    max-height: 60px;
+}
+
+.navbar-logo-text {
+    font-weight: 300;
+}
