@@ -43,8 +43,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="font-weight-bold" for="password">Encrypt with Password (optional)</label>
-                    <input class="form-control" type="password" name="password" id="password" placeholder="Password" style="border: 1.5px solid #a2a4a6">
+                    <label class="font-weight-bold" for="password">Encrypt with Password</label>
+                    <input class="form-control" type="password" name="password" id="password" placeholder="Password (optional)" style="border: 1.5px solid #a2a4a6">
                 </div>
 
                 <div class="form-group">
@@ -58,12 +58,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="font-weight-bold" for="delete-after-views">Delete after</label>
-                    <input class="" type="number" name="delete-after-views" id="delete-after-views" placeholder="0" style="border: 1.5px solid #a2a4a6">
-                    <label class="font-weight-bold" for="delete-after-views">Views</label>
+                    <label class="font-weight-bold" for="delete-after-views">Delete after certain views</label>
+                    <input class="form-control" type="number" name="delete-after-views" id="delete-after-views" placeholder="Number of views (optional)" style="border: 1.5px solid #a2a4a6">
+                </div>
+
+                <div class="form-group">
+                    <label class="font-weight-bold" for="delete-after-time">Expires after certain time</label>
+                    <select class="form-control" name="delete-after-time" id="delete-after-time" style="border: 1.5px solid #a2a4a6">
+                        <option value="never">Never</option>
+                    </select>
                 </div>
             </div>
         </div>
+        <br><br><br>
     </section>
 
     <script type="text/javascript" src="resources/plugins/jquery-3.5.1/jquery.min.js"></script>
