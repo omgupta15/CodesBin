@@ -58,21 +58,30 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="font-weight-bold" for="delete-after-views">Delete after certain views</label>
-                    <input class="form-control" type="number" name="delete-after-views" id="delete-after-views" placeholder="Number of views (optional)" style="border: 1.5px solid #a2a4a6">
+                    <button class="btn btn-light font-weight-bold" data-toggle="collapse" data-target="#advancedFeatures" aria-expanded="false" aria-controls="advancedFeatures" style="font-size: 120%">
+                        <i class="fas fa-caret-right" id="collapseIcon"></i>
+                        Advanced Features
+                    </button>
                 </div>
 
-                <div class="form-group">
-                    <label class="font-weight-bold" for="delete-after-time">Expires after certain time</label>
-                    <select class="form-control" name="delete-after-time" id="delete-after-time" style="border: 1.5px solid #a2a4a6">
-                        <option value="never">Never</option>
-                        <option value="5m">5 minutes</option>
-                        <option value="10m">10 minutes</option>
-                        <option value="60m">1 Hour</option>
-                        <option value="1440m">1 Day</option>
-                        <option value="10080m">7 Days</option>
-                        <option value="43200m">30 Days</option>
-                    </select>
+                <div class="collapse" id="advancedFeatures">
+                    <div class="form-group">
+                        <label class="font-weight-bold" for="delete-after-views">Delete after certain views</label>
+                        <input class="form-control" type="number" name="delete-after-views" id="delete-after-views" placeholder="Number of views (optional)" style="border: 1.5px solid #a2a4a6">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold" for="delete-after-time">Expires after certain time</label>
+                        <select class="form-control" name="delete-after-time" id="delete-after-time" style="border: 1.5px solid #a2a4a6">
+                            <option value="never">Never</option>
+                            <option value="5m">5 minutes</option>
+                            <option value="10m">10 minutes</option>
+                            <option value="60m">1 Hour</option>
+                            <option value="1440m">1 Day</option>
+                            <option value="10080m">7 Days</option>
+                            <option value="43200m">30 Days</option>
+                        </select>
+                    </div>
                 </div>
 
                 <button class="btn btn-primary btn-block">
