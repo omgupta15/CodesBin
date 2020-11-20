@@ -208,3 +208,23 @@ $(window).bind("resize", function () {
         $("#newPostButton").removeClass("btn-lg").addClass("btn-sm");
     }
 }).trigger('resize');
+
+$("#advancedFeatures").on("show.bs.collapse", function () {
+    $("#collapseIcon").addClass("fa-caret-down").removeClass("fa-caret-right");
+});
+
+$("#advancedFeatures").on("hide.bs.collapse", function () {
+    $("#collapseIcon").removeClass("fa-caret-down").addClass("fa-caret-right");
+});
+
+$(window).scroll(function(){
+    var currentVerticalPosition = $(window).scrollTop();
+    var visible = $(window).height();
+    const imageHeight = 980; // px
+    var maximumScroll = imageHeight - visible;  
+    if (maximumScroll > currentVerticalPosition) {
+        $("body").css("background-position", "center -" + currentVerticalPosition + "px");
+    } else {
+        $("body").css("background-position", "center -" + maximumScroll + "px");
+    }
+}).trigger("scroll");
