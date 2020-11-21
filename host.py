@@ -387,8 +387,18 @@ def createPost():
 
 @app.route("/<url>")
 def github(url):
-    if url.lower() == "github": #Case-Insensitive
+    # For making these URLs Case-Insensitive
+    if url.lower() == "github":
         return flask.redirect("https://github.com/omgupta15/CodesBin", code = 301)
+
+    if url.lower() in ("ppt", "presentation",):
+        with open("CodesBin-OctaHacks-Presentation.pdf", "rb") as f:
+            content = f.read()
+        response = flask.make_response(content, 200)
+        response.headers["Content-type"] = "application/pdf"
+        response.headers["Content-disposition"] = "inline; filename=CodesBin-OctaHacks-Presentation.pdf"
+        return response
+
     return flask.abort(404)
 
 @app.errorhandler(404)
