@@ -76,9 +76,11 @@ def post(urlId):
             "syntaxHighlighting": result[9],
             "deleteAfterViews": result[10],
             "deleteAtTime": result[12],
-            "qrCodeUrl": result[13],
-            "lastView": result[14],
-            "linesCount": result[15]
+            "hideTimeOfCreation": result[13],
+            "hideNumberOfViews": result[14],
+            "qrCodeUrl": result[15],
+            "lastView": result[16],
+            "linesCount": result[17]
         }
         return flask.render_template("post.html", config = project, post = post)
 
@@ -111,7 +113,7 @@ def postEditor(urlId):
             with database.cursor() as cursor:
                 cursor.execute("SELECT * FROM Posts WHERE id = %s", (postId,))
                 result = cursor.fetchone()
-        
+
         post = {
             "created": result[1],
             "urlId": result[2],
@@ -124,10 +126,13 @@ def postEditor(urlId):
             "syntaxHighlighting": result[9],
             "deleteAfterViews": result[10],
             "deleteAtTime": result[12],
-            "qrCodeUrl": result[13],
-            "lastView": result[14],
-            "linesCount": result[15]
+            "hideTimeOfCreation": result[13],
+            "hideNumberOfViews": result[14],
+            "qrCodeUrl": result[15],
+            "lastView": result[16],
+            "linesCount": result[17]
         }
+
         if not post["passwordProtected"]:
             if not post["deleteAfterViews"]:
                 with getDatabase() as database:
@@ -249,11 +254,13 @@ def createPost():
                     deleteAfterViews,
                     deleteAfterTime, -- milliseconds
                     deleteAtTime, -- milliseconds
+                    hideTimeOfCreation,
+                    hideNumberOfViews,
 
                     qrCodeUrl,
                     lastView,
                     linesCount
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
                 (
                     int(time.time()*1000),
@@ -269,6 +276,8 @@ def createPost():
                     deleteAfterViews if deleteAfterViews else None,
                     int(deleteAfterTime*60*1000),
                     int((time.time()*1000) + (deleteAfterTime*60*1000)) if deleteAfterTime else None,
+                    hideTimeOfCreation,
+                    hideNumberOfViews,
 
                     qrCodeUrl,
                     -1,
@@ -294,7 +303,7 @@ app.run(port = 80, debug = True)
 
 # with getDatabase() as database:
 #     with database.cursor() as cursor:
-#         cursor.execute("DROP TABLE Posts")
+#         # cursor.execute("DROP TABLE Posts")
 #         cursor.execute("""
 #             CREATE TABLE Posts (
 #                 id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -311,7 +320,8 @@ app.run(port = 80, debug = True)
 #                 deleteAfterViews BIGINT,
 #                 deleteAfterTime BIGINT, -- milliseconds
 #                 deleteAtTime BIGINT, -- milliseconds
-
+#                 hideTimeOfCreation BOOLEAN,
+#                 hideNumberOfViews BOOLEAN,
 #                 qrCodeUrl LONGTEXT,
 #                 lastView BIGINT,
 #                 linesCount BIGINT

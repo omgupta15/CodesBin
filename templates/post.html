@@ -39,14 +39,18 @@
             <h3 class="card-header text-white" style="background-color: #043459;">View Post</h3>
             
             <div class="card-body" style="font-size: 20px;">
-                <div class="form-group" id="createdOn">
-                    <i class="fas fa-calendar-week"></i>
-                    <span class="font-weight-bold">Created: </span>
-                </div>
-                <div class="form-group" id="postViews">
-                    <i class="fas fa-eye"></i>
-                    <span class="font-weight-bold">Views: </span>
-                </div>
+                {% if not post.hideTimeOfCreation %}
+                    <div class="form-group" id="createdOn">
+                        <i class="fas fa-calendar-week"></i>
+                        <span class="font-weight-bold">Created: </span>
+                    </div>
+                {% endif %}
+                {% if not post.hideNumberOfViews %}
+                    <div class="form-group" id="postViews">
+                        <i class="fas fa-eye"></i>
+                        <span class="font-weight-bold">Views: </span>
+                    </div>
+                {% endif %}
                 <div class="form-group" id="createdOn">
                     <i class="far fa-code"></i>
                     <span class="font-weight-bold">Text: </span>
@@ -117,9 +121,13 @@ $(window).bind("resize", function () {
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script type="text/javascript">
-        var date = new Date({{ post.created }});
-        document.getElementById("createdOn").innerHTML += date.toString();
-        document.getElementById("postViews").innerHTML += {{ post.views }};
+        {% if not post.hideTimeOfCreation %}
+            var date = new Date({{ post.created }});
+            document.getElementById("createdOn").innerHTML += date.toString();
+        {% endif %}
+        {% if not post.hideNumberOfViews %}
+            document.getElementById("postViews").innerHTML += {{ post.views }};
+        {% endif %}
         document.getElementById("rawTextButton").addEventListener("click", function() {
             var newWindow = window.open(
                 "", "", 

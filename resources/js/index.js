@@ -92,8 +92,8 @@ var enableAllElements = function() {
         "syntax-highlighting",
         "delete-after-views",
         "delete-after-time",
-        // "hide-time-of-creation",
-        // "hide-number-of-views",
+        "hide-time-of-creation",
+        "hide-number-of-views",
         "createPostButton"
     ];
     for (var i = 0; i < elements.length; i++) {
@@ -109,8 +109,8 @@ var disableAllElements = function() {
         "syntax-highlighting",
         "delete-after-views",
         "delete-after-time",
-        // "hide-time-of-creation",
-        // "hide-number-of-views",
+        "hide-time-of-creation",
+        "hide-number-of-views",
         "createPostButton"
     ];
     for (var i = 0; i < elements.length; i++) {
@@ -175,8 +175,8 @@ var onCreatePostButtonClick = function() {
         "deleteAfterTime": deleteAfterTimeValue,
         "deleteAfterViews": deleteAfterViewsValue,
         "linesCount": linesCount,
-        "hideTimeOfCreation": false, //hideTimeOfCreation.checked,
-        "hideNumberOfViews": false //hideNumberOfViews.checked
+        "hideTimeOfCreation": hideTimeOfCreation.checked,
+        "hideNumberOfViews": hideNumberOfViews.checked
     }
     var xhttp = new XMLHttpRequest();
     xhttp.onerror = function() {
