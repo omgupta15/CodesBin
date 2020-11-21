@@ -36,13 +36,89 @@ def index():
 
 @app.route("/p/<urlId>", methods = ["GET", "POST"])
 @limiter.limit("5/second")
-def post():
+def post(urlId):
     args = flask.request.args
     data = flask.request.get_data(as_text = True)
     headers = flask.request.headers
     cookies = flask.request.cookies
     method = flask.request.method
     ip = flask.request.remote_addr
+    #AND NOT EXPIRED AND ENABLED
+    with getDatabase() as database:
+        with database.cursor() as cursor:
+            cursor.execute("SELECT id FROM Posts WHERE urlId = %s", (urlId,))
+            result = cursor.fetchone()
+
+    if not result:
+        return flask.abort(404)
+
+    postId = result[0]
+
+    if method == "GET":
+        with getDatabase() as database:
+            with database.cursor() as cursor:
+                cursor.execute("SELECT * FROM Posts WHERE id = %s", (postId,))
+                result = cursor.fetchone()
+#              0   id BIGINT PRIMARY KEY AUTO_INCREMENT,
+#              1   created BIGINT,
+#              2   urlId LONGTEXT,
+#              3   enabled BOOLEAN,
+#              4   expired BOOLEAN,
+#              5   views BIGINT,
+
+#              6   data LONGTEXT,
+#              7   passwordProtected BOOLEAN,
+#              8   verificationToken LONGTEXT,
+#              9   syntaxHighlighting LONGTEXT,
+#              10  deleteAfterViews BIGINT,
+#              11  deleteAfterTime BIGINT, -- milliseconds
+#              12  deleteAtTime BIGINT, -- milliseconds
+
+#              13  qrCodeUrl LONGTEXT,
+#              14  lastView BIGINT
+        post = {
+            "text": result[6],
+            "passwordProtected": result[7],
+            "syntaxHighlighting": result[9],
+            "urlId": result[2],
+            "linesCount": len(result[6].splitlines())
+        }
+        print(post)
+        return flask.render_template("post.html", config = project, post = post)
+
+@app.route("/p/editor/<urlId>", methods = ["GET"])
+@limiter.limit("5/second")
+def postEditor(urlId):
+    args = flask.request.args
+    data = flask.request.get_data(as_text = True)
+    headers = flask.request.headers
+    cookies = flask.request.cookies
+    method = flask.request.method
+    ip = flask.request.remote_addr
+
+    with getDatabase() as database:
+        with database.cursor() as cursor:
+            cursor.execute("SELECT id, enabled, expired FROM Posts WHERE urlId = %s", (urlId,))
+            result = cursor.fetchone()
+
+    if not result:
+        return flask.abort(404)
+
+    postId = result[0]
+
+    if method == "GET":
+        with getDatabase() as database:
+            with database.cursor() as cursor:
+                cursor.execute("SELECT * FROM Posts WHERE id = %s", (postId,))
+                result = cursor.fetchone()
+        post = {
+            "text": result[6],
+            "passwordProtected": result[7],
+            "syntaxHighlighting": result[9],
+            "urlId": result[2],
+        }
+        print(post)
+        return flask.render_template("editor.html", config = project, post = post)
 
 @app.route("/api/create-post", methods = ["POST"])
 @limiter.limit("1/second")
@@ -55,6 +131,7 @@ def createPost():
     ip = flask.request.remote_addr
 
     try:
+        print(data)
         data = json.loads(data)
 
         text = str(data["data"])
@@ -158,6 +235,7 @@ def createPost():
                     -1
                 )
             )
+            database.commit()
 
     return flask.jsonify({
         "success": True,
