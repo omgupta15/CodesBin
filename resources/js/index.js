@@ -1,6 +1,24 @@
 
+var checkButtonPositions = function() {
+    var breakingWidth = 770; // px
+    var width = $(window).width();
+    if (width <= breakingWidth) {
+        $("#buttonsDiv").removeClass("row");
+        document.getElementById("postCreated").style = "margin-top:1rem;";
+        document.getElementById("spacing1").innerHTML = "<br>";
+        document.getElementById("spacing2").innerHTML = "<br>";
+    }
+    else {
+        $("#buttonsDiv").addClass("row");
+        document.getElementById("postCreated").style = "margin-top:1rem; transform: translateY(50%);";
+        document.getElementById("spacing1").innerHTML = "<br>";
+        document.getElementById("spacing2").innerHTML = "<br>";
+    }
+}
+
 $(window).bind("resize", function () {
     var width = $(this).width();
+    checkButtonPositions();
     if (392 < width && width < 768) {
         $("#newPostButton").removeClass("btn-lg").removeClass("btn-sm");
     } else if (width >= 768) {

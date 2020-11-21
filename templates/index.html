@@ -34,7 +34,7 @@
     </nav>
 
     <section class="container">
-        <div class="card" style="margin-top:1rem;" id="createPost" hidden>
+        <div class="card" style="margin-top:1rem;" id="createPost">
             <h3 class="card-header text-white" style="background-color: #043459;">Create a Post</h3>
             
             <div class="card-body">
@@ -107,7 +107,7 @@
     </section>
 
     <section class="container">
-        <div class="card" style="margin-top:1rem; transform: translateY(50%);" id="postCreated">
+        <div class="card" id="postCreated" hidden>
             <h3 class="card-header text-white" style="background-color: #043459;">
                 Post Created Successfully
             </h3>
@@ -117,17 +117,19 @@
                     <label class="font-weight-bold" for="post-url">Post URL</label>
                     <input class="form-control" type="url" name="post-url" id="post-url" style="border: 1.5px solid #a2a4a6" disabled>
                 </div>
-                <div class="form-group row" style="margin-top: 0.75rem;">
+                <div class="form-group row" style="margin-top: 0.75rem;" id="buttonsDiv">
                     <div class="col" id="urlCopyButtonDiv">
                         <button class="btn btn-primary btn-block" id="urlCopyButton">
                             <i class="fas fa-copy"></i>&nbsp;Copy URL
                         </button>
                     </div>
+                    <div id="spacing1"></div>
                     <div class="col" id="viewButtonDiv">
                         <button class="btn btn-success btn-block" id="viewButton">
                             <i class="fas fa-image"></i>&nbsp;View QR Code
                         </button>
                     </div>
+                    <div id="spacing2"></div>
                     <div class="col" id="saveButtonDiv">
                         <button class="btn btn-danger btn-block" id="saveButton">
                             <i class="fas fa-save"></i>&nbsp;Save QR Code
