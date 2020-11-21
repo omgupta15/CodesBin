@@ -385,9 +385,15 @@ def createPost():
         "qrCodeUrl": project["website"] + qrCodeUrl.strip("/")
     })
 
+@app.route("/<url>")
+def github(url):
+    if url.lower() == "github": #Case-Insensitive
+        return flask.redirect("https://github.com/omgupta15/CodesBin", code = 301)
+    return flask.abort(404)
+
 @app.errorhandler(404)
 def not_found(e):
-    return "<h1>This post was either deleted or does not exist.</h1>"
+    return "<h1>This page was either deleted or does not exist.</h1>"
 
 @app.errorhandler(500)
 def internal_server_error(e):
