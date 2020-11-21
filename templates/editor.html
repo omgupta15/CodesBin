@@ -5,23 +5,114 @@
 </head>
 <body>
 <div id="editor"></div>
+<code id="code" hidden>Please enter the password first.</code>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script type="text/javascript" src="/resources/plugins/aes/aes.js"></script>
 <script src="/resources/plugins/ace/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
-    document.getElementById("editor").innerHTML = `{{ post.text }}`;
-    var editor = ace.edit("editor");
-    editor.setOptions({
-        fontSize: "20pt",
-        readOnly: true,
-        highlightActiveLine: false,
-        highlightGutterLine: false
-    })
-    editor.renderer.$cursorLayer.element.style.opacity = 0;
-    editor.setTheme("ace/theme/monokai");
-    editor.session.setMode("ace/mode/javascript");
-    {% if post.syntaxHighlighting != "plain" %}
-        editor.setTheme("ace/theme/monokai");
-        {% if post.syntaxHighlighting != "code" %}
-            editor.session.setMode("ace/mode/{{ post.syntaxHighlighting }}");
+
+var generateMD5 = function(text) {
+    return CryptoJS.MD5(text).toString();
+};
+var generateVerificationToken = function(text, password) {
+    return generateMD5(text + generateMD5(password).toString()).toString();
+};
+var encrypt = function(text, password) {
+    var iv = CryptoJS.lib.WordArray.random(16);
+    var encrypted = CryptoJS.AES.encrypt(text, CryptoJS.enc.Utf8.parse(generateMD5(password)), {iv: iv});
+    return iv.concat(encrypted.ciphertext).toString(CryptoJS.enc.Base64);
+}
+var decrypt = function(encryptedText, password) {
+    console.log(encryptedText);
+    console.log(password);
+    try {
+        var ciphertext = CryptoJS.enc.Base64.parse(encryptedText);
+        var iv = ciphertext.clone();
+        iv.sigBytes = 16;
+        iv.clamp();
+        ciphertext.words.splice(0, 4);
+        ciphertext.sigBytes -= 16;
+        var decrypted = CryptoJS.AES.decrypt({ciphertext: ciphertext}, CryptoJS.enc.Utf8.parse(generateMD5(password)), {iv: iv});
+        console.log(decrypted);
+        var decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+        console.log(decrypted);
+
+        if (!decryptedText) {
+            return {success: false};
+        }
+        
+        return {success: true, text: decryptedText, verificationToken: generateVerificationToken(decryptedText, password)};
+    }
+    catch (e) {
+        return {success: false};
+    }
+};
+
+    {% if post.passwordProtected %}
+        Swal.fire({
+            title: "Enter the Password",
+            input: "password",
+            inputAttributes: {
+                autocapitalize: "off"
+            },
+            showCancelButton: false,
+            confirmButtonText: "Decrypt",
+            showLoaderOnConfirm: true,
+            preConfirm: (password) => {
+                response = decrypt("{{ post.text }}", password);
+                console.log(response)
+                if (!response.success) {
+                    Swal.showValidationMessage("Invalid Password Entered.");
+                }
+                else {
+                    return response;
+                }
+            },
+            allowOutsideClick: () => false
+        }).then((result) => {
+            console.log(result);
+            console.log(result.value);
+            if (result.isConfirmed) {
+                Swal.fire(
+                    "Text decrypted successfully!",
+                    "",
+                    "success"
+                );
+
+                document.getElementById("code").innerHTML = result.value.text;
+                document.getElementById("editor").innerHTML = result.value.text;
+                var editor = ace.edit("editor");
+                editor.setOptions({
+                    fontSize: "15pt",
+                    readOnly: true,
+                    highlightActiveLine: false,
+                    highlightGutterLine: false
+                });
+                editor.renderer.$cursorLayer.element.style.opacity = 0;
+                {% if post.syntaxHighlighting != "plain" %}
+                    editor.setTheme("ace/theme/monokai");
+                    {% if post.syntaxHighlighting != "code" %}
+                        editor.session.setMode("ace/mode/{{ post.syntaxHighlighting }}");
+                    {% endif %}
+                {% endif %}
+            }
+        });
+    {% else %}
+        document.getElementById("code").innerHTML = `{{ post.text }}`;
+        document.getElementById("editor").innerHTML = `{{ post.text }}`;
+        var editor = ace.edit("editor");
+        editor.setOptions({
+            fontSize: "15pt",
+            readOnly: true,
+            highlightActiveLine: false,
+            highlightGutterLine: false
+        });
+        editor.renderer.$cursorLayer.element.style.opacity = 0;
+        {% if post.syntaxHighlighting != "plain" %}
+            editor.setTheme("ace/theme/monokai");
+            {% if post.syntaxHighlighting != "code" %}
+                editor.session.setMode("ace/mode/{{ post.syntaxHighlighting }}");
+            {% endif %}
         {% endif %}
     {% endif %}
 </script>

@@ -43,45 +43,42 @@ def post(urlId):
     cookies = flask.request.cookies
     method = flask.request.method
     ip = flask.request.remote_addr
-    #AND NOT EXPIRED AND ENABLED
+    
     with getDatabase() as database:
         with database.cursor() as cursor:
-            cursor.execute("SELECT id FROM Posts WHERE urlId = %s", (urlId,))
+            cursor.execute("SELECT id, enabled FROM Posts WHERE urlId = %s", (urlId,))
             result = cursor.fetchone()
 
     if not result:
         return flask.abort(404)
 
     postId = result[0]
+    enabled = result[1]
+
+    if not enabled:
+        return flask.abort(404)
 
     if method == "GET":
         with getDatabase() as database:
             with database.cursor() as cursor:
                 cursor.execute("SELECT * FROM Posts WHERE id = %s", (postId,))
                 result = cursor.fetchone()
-#              0   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-#              1   created BIGINT,
-#              2   urlId LONGTEXT,
-#              3   enabled BOOLEAN,
-#              4   expired BOOLEAN,
-#              5   views BIGINT,
 
-#              6   data LONGTEXT,
-#              7   passwordProtected BOOLEAN,
-#              8   verificationToken LONGTEXT,
-#              9   syntaxHighlighting LONGTEXT,
-#              10  deleteAfterViews BIGINT,
-#              11  deleteAfterTime BIGINT, -- milliseconds
-#              12  deleteAtTime BIGINT, -- milliseconds
-
-#              13  qrCodeUrl LONGTEXT,
-#              14  lastView BIGINT
         post = {
+            "created": result[1],
+            "urlId": result[2],
+            "enabled": result[3],
+            "expired": result[4],
+            "views": result[5],
             "text": result[6],
             "passwordProtected": result[7],
+            "verificationToken": result[8],
             "syntaxHighlighting": result[9],
-            "urlId": result[2],
-            "linesCount": len(result[6].splitlines())
+            "deleteAfterViews": result[10],
+            "deleteAtTime": result[12],
+            "qrCodeUrl": result[13],
+            "lastView": result[14],
+            "linesCount": result[15]
         }
         print(post)
         return flask.render_template("post.html", config = project, post = post)
@@ -98,26 +95,67 @@ def postEditor(urlId):
 
     with getDatabase() as database:
         with database.cursor() as cursor:
-            cursor.execute("SELECT id, enabled, expired FROM Posts WHERE urlId = %s", (urlId,))
+            cursor.execute("SELECT id, enabled FROM Posts WHERE urlId = %s", (urlId,))
             result = cursor.fetchone()
 
     if not result:
         return flask.abort(404)
 
     postId = result[0]
+    enabled = result[1]
+
+    if not enabled:
+        return flask.abort(404)
 
     if method == "GET":
         with getDatabase() as database:
             with database.cursor() as cursor:
                 cursor.execute("SELECT * FROM Posts WHERE id = %s", (postId,))
                 result = cursor.fetchone()
+        
         post = {
+            "created": result[1],
+            "urlId": result[2],
+            "enabled": result[3],
+            "expired": result[4],
+            "views": result[5],
             "text": result[6],
             "passwordProtected": result[7],
+            "verificationToken": result[8],
             "syntaxHighlighting": result[9],
-            "urlId": result[2],
+            "deleteAfterViews": result[10],
+            "deleteAtTime": result[12],
+            "qrCodeUrl": result[13],
+            "lastView": result[14],
+            "linesCount": result[15]
         }
         print(post)
+        if not post["passwordProtected"]:
+            if not post["deleteAfterViews"]:
+                with getDatabase() as database:
+                    with database.cursor() as cursor:
+                        cursor.execute("UPDATE Posts SET views = views + 1 WHERE id = %s", (postId,))
+                        database.commit()
+
+            else:
+                if post["deleteAfterViews"] == 1:
+                    with getDatabase() as database:
+                        with database.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE Posts SET views = views + 1, enabled = %s, expired = %s, deleteAfterViews = deleteAfterViews - 1 WHERE id = %s",
+                                (False, True, postId,)
+                            )
+                            database.commit()
+
+                else:
+                    with getDatabase() as database:
+                        with database.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE Posts SET views = views + 1, deleteAfterViews = deleteAfterViews - 1 WHERE id = %s",
+                                (postId,)
+                            )
+                            database.commit()
+
         return flask.render_template("editor.html", config = project, post = post)
 
 @app.route("/api/create-post", methods = ["POST"])
@@ -142,6 +180,7 @@ def createPost():
         deleteAfterViews = int(data["deleteAfterViews"])
         hideTimeOfCreation = bool(data["hideTimeOfCreation"])
         hideNumberOfViews = bool(data["hideNumberOfViews"])
+        linesCount = int(data["linesCount"])
     except Exception as e:
         print(e)
         return flask.jsonify({
@@ -160,6 +199,12 @@ def createPost():
     elif deleteAfterTime < 0 or deleteAfterViews < 0:
         invalidJson = True
 
+    elif len(text) > 1000000 or len(syntaxHighlighting) > 100:
+        invalidJson = True
+
+    elif verificationToken and len(verificationToken) > 40:
+        invalidJson = True
+    
     if invalidJson:
         return flask.jsonify({
             "success": False,
@@ -169,12 +214,9 @@ def createPost():
     urlId = generateToken(10)
     with getDatabase() as database:
         with database.cursor() as cursor:
-            cursor.execute(
-                "SELECT * FROM Posts WHERE urlId = %s",
-                (urlId,)
-            )
+            cursor.execute("SELECT * FROM Posts WHERE urlId = %s", (urlId,))
             result = cursor.fetchone()
-
+    
     while result:
         urlId = generateToken(10)
         with getDatabase() as database:
@@ -213,8 +255,9 @@ def createPost():
                     deleteAtTime, -- milliseconds
 
                     qrCodeUrl,
-                    lastView
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    lastView,
+                    linesCount
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
                 (
                     int(time.time()*1000),
@@ -232,7 +275,8 @@ def createPost():
                     int((time.time()*1000) + (deleteAfterTime*60*1000)) if deleteAfterTime else None,
 
                     qrCodeUrl,
-                    -1
+                    -1,
+                    linesCount
                 )
             )
             database.commit()
@@ -254,7 +298,7 @@ app.run(port = 80, debug = True)
 
 # with getDatabase() as database:
 #     with database.cursor() as cursor:
-#         # cursor.execute("DROP TABLE Posts")
+#         cursor.execute("DROP TABLE Posts")
 #         cursor.execute("""
 #             CREATE TABLE Posts (
 #                 id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -273,7 +317,8 @@ app.run(port = 80, debug = True)
 #                 deleteAtTime BIGINT, -- milliseconds
 
 #                 qrCodeUrl LONGTEXT,
-#                 lastView BIGINT
+#                 lastView BIGINT,
+#                 linesCount BIGINT
 #             )
 #         """)
 #         database.commit()

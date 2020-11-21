@@ -14,7 +14,7 @@ var checkButtonPositions = function() {
         document.getElementById("spacing1").innerHTML = "<br>";
         document.getElementById("spacing2").innerHTML = "<br>";
     }
-}
+};
 
 $(window).bind("resize", function () {
     var width = $(this).width();
@@ -120,7 +120,7 @@ var disableAllElements = function() {
 }
 
 var onCreatePostButtonClick = function() {
-    var text = document.getElementById("text");
+    var text = document.getElementById("text").value;
     var password = document.getElementById("password");
     var syntaxHighlighting = document.getElementById("syntax-highlighting");
     var deleteAfterViews = document.getElementById("delete-after-views");
@@ -128,7 +128,9 @@ var onCreatePostButtonClick = function() {
     var hideTimeOfCreation = document.getElementById("hide-time-of-creation");
     var hideNumberOfViews = document.getElementById("hide-number-of-views");
 
-    if (!text.value) {
+    var linesCount = text.split(/\r\n|\r|\n/).length;
+
+    if (!text) {
         return Swal.fire(
             "No Text",
             "The text box is empty. Please enter the text that you want to share!",
@@ -144,7 +146,7 @@ var onCreatePostButtonClick = function() {
     if (password.value) {
         passwordProtected = true;
         verificationToken = generateVerificationToken(text.value, password.value);
-        var text = encrypt(text.value, password.value);
+        var text = encrypt(text, password.value);
     }
     
     var deleteAfterViewsValue = parseInt(deleteAfterViews.value, 10);
@@ -166,12 +168,13 @@ var onCreatePostButtonClick = function() {
     }
 
     data = {
-        "data": text.value,
+        "data": text,
         "passwordProtected": passwordProtected,
         "verificationToken": verificationToken,
         "syntaxHighlighting": syntaxHighlighting.value,
         "deleteAfterTime": deleteAfterTimeValue,
         "deleteAfterViews": deleteAfterViewsValue,
+        "linesCount": linesCount,
         "hideTimeOfCreation": false, //hideTimeOfCreation.checked,
         "hideNumberOfViews": false //hideNumberOfViews.checked
     }
@@ -457,12 +460,10 @@ for (var name in languages) {
     optGroup.appendChild(element);
 }
 
-// text = "abcd";
-// password = "1234";
-// var verificationToken = generateVerificationToken(text, password);
-// console.log(verificationToken);
+// text = "123";
+// password = "123";
 // encryptedText = encrypt(text, password)
 // console.log(encryptedText);
 
-// decryptedText = decrypt(encryptedText, password, verificationToken);
+// decryptedText = decrypt(encryptedText, password);
 // console.log(decryptedText);
