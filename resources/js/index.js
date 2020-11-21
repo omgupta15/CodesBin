@@ -72,11 +72,8 @@ var decrypt = function(encryptedText, password, verificationToken) {
         ciphertext.sigBytes -= 16;
         var decrypted = CryptoJS.AES.decrypt({ciphertext: ciphertext}, CryptoJS.enc.Utf8.parse(generateMD5(password)), {iv: iv});
         var decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
-
-        if (generateVerificationToken(decryptedText, password) == verificationToken) {
-            return {success: true, text: decryptedText};
-        }
-        return {success: false};
+        
+        return {success: true, text: decryptedText, verificationToken: generateVerificationToken(decryptedText, password)};
     }
     catch (e) {
         return {success: false};
