@@ -1,5 +1,5 @@
 # CodesBin
-CodesBin is service using which users can share texts or code snippets quickly and securely. CodesBin uses AES encryption to protect user's data.
+CodesBin is a service using which users can share texts or code snippets quickly and securely. CodesBin uses AES encryption to protect user's data.
 
 If a user enters a password, their text is encrypted using that password and no one can decrypt that text without the password.
 The passwords aren't sent to the server and the whole process of encryption & decryption happens on the client-side.
