@@ -40,8 +40,44 @@
             
             {% if post.passwordProtected %}
             {% else %}
-                <div class="card-body">
-                    <iframe src="/p/editor/{{ post.urlId }}" width="100%" height="{{ 33*post.linesCount }}px"></iframe>
+                <div class="card-body" style="font-size: 20px;">
+                    <div class="form-group" id="createdOn">
+                        <i class="fas fa-calendar-week"></i>
+                        <span class="font-weight-bold">Created: </span>
+                    </div>
+                    <div class="form-group" id="postViews">
+                        <i class="fas fa-eye"></i>
+                        <span class="font-weight-bold">Views: </span>
+                    </div>
+                    <div class="form-group" id="createdOn">
+                        <i class="far fa-code"></i>
+                        <span class="font-weight-bold">Text: </span>
+                    </div>
+                    <div class="form-group">
+                        <iframe src="/p/editor/{{ post.urlId }}" width="100%" height="{{ 20.5*post.linesCount + 30}}px" id="codeEditorFrame"></iframe>
+                    </div>
+                    <div class="form-group row" style="margin-top: 0.75rem;" id="buttonsDiv">
+                        <div class="col">
+                            <button class="btn btn-primary btn-block" id="rawTextButton">
+                                <i class="fas fa-copy"></i>&nbsp;View RAW Text
+                            </button>
+                        </div>
+                        <div><br></div>
+                        <div class="col">
+                            <button class="btn btn-success btn-block" onclick="Swal.fire({
+                                imageUrl: '{{ config.website + post.qrCodeUrl }}',
+                                imageAlt: 'Unable to load the QR Code.'
+                            });">
+                                <i class="fas fa-image"></i>&nbsp;View QR Code
+                            </button>
+                        </div>
+                        <div><br></div>
+                        <div class="col">
+                            <a class="btn btn-danger btn-block" id="saveButton" href="{{ config.website + post.qrCodeUrl }}" download="qrCode.png">
+                                <i class="fas fa-save"></i>&nbsp;Save QR Code
+                            </a>
+                        </div>
+                    </div>
                 </div>
             {% endif %}
         </div>
@@ -51,8 +87,44 @@
     <script type="text/javascript" src="/resources/plugins/jquery-3.5.1/jquery.min.js"></script>
     <script type="text/javascript" src="/resources/plugins/bootstrap-4.5.3/js/bootstrap.bundle.min.js"></script>
 
+    <script type="text/javascript">
+        
+var checkButtonPositions = function() {
+    var breakingWidth = 770; // px
+    var width = $(window).width();
+    if (width <= breakingWidth) {
+        $("#buttonsDiv").removeClass("row");
+    }
+    else {
+        $("#buttonsDiv").addClass("row");
+    }
+}
+
+$(window).bind("resize", function () {
+    var width = $(this).width();
+    checkButtonPositions();
+    if (392 < width && width < 768) {
+        $("#newPostButton").removeClass("btn-lg").removeClass("btn-sm");
+    } else if (width >= 768) {
+        $("#newPostButton").removeClass("btn-sm").addClass("btn-lg");
+    } else {
+        $("#newPostButton").removeClass("btn-lg").addClass("btn-sm");
+    }
+}).trigger('resize');
+
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-    <script type="text/javascript" src="/resources/plugins/aes/aes.js"></script>
-    <!-- <script type="text/javascript" src="/resources/plugins/ace/ace.js"></script> -->
+    <script type="text/javascript">
+        var date = new Date({{ post.created }});
+        document.getElementById("createdOn").innerHTML += date.toString();
+        document.getElementById("postViews").innerHTML += {{ post.views }};
+        document.getElementById("rawTextButton").addEventListener("click", function() {
+            var newWindow = window.open(
+                "", "", 
+                "left=0,top=0,width=800,height=600,toolbar=0,scrollbars=0,status=0");
+            newWindow.document.write("<textarea style='width: 100%;height: 97vh;' disabled>"+document.getElementById("codeEditorFrame").contentWindow.document.getElementById("code").innerHTML+"</textarea>");
+        });
+    </script>
 </body>
 </html>
