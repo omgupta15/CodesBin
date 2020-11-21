@@ -80,9 +80,9 @@ var enableAllElements = function() {
         "hide-time-of-creation",
         "hide-number-of-views",
         "createPostButton"
-    ]
-    for (var elementId in elements) {
-        document.getElementById(elementId).disabled = false;
+    ];
+    for (var i = 0; i < elements.length; i++) {
+        document.getElementById(elements[i]).disabled = false;
     }
     createPostButton.innerHTML = normalText;
 }
@@ -97,9 +97,9 @@ var disableAllElements = function() {
         "hide-time-of-creation",
         "hide-number-of-views",
         "createPostButton"
-    ]
-    for (var elementId in elements) {
-        document.getElementById(elementId).disabled = true;
+    ];
+    for (var i = 0; i < elements.length; i++) {
+        document.getElementById(elements[i]).disabled = true;
     }
     createPostButton.innerHTML = loadingText;
 }
@@ -133,15 +133,7 @@ var onCreatePostButtonClick = function() {
     }
     
     var deleteAfterViewsValue = parseInt(deleteAfterViews.value, 10);
-    if (!deleteAfterViewsValue) {
-        enableAllElements();
-        return Swal.fire(
-            "Invalid Value",
-            "Please enter a valid integer value for number of views after which the post should be deleted.",
-            "error"
-        );
-    }
-    if (deleteAfterViewsValue < 1) {
+    if (deleteAfterViewsValue && deleteAfterViewsValue < 1) {
         enableAllElements();
         return Swal.fire(
             "Invalid Value",
@@ -149,13 +141,21 @@ var onCreatePostButtonClick = function() {
             "error"
         );
     }
+    if (!deleteAfterViewsValue) {
+        deleteAfterViewsValue = 0;
+    }
+
+    var deleteAfterTimeValue = parseInt(deleteAfterTime.value, 10);
+    if (!deleteAfterTimeValue) {
+        deleteAfterTimeValue = 0;
+    }
 
     data = {
         "data": text,
         "passwordProtected": passwordProtected,
         "verificationToken": verificationToken,
         "syntaxHighlighting": syntaxHighlighting.value,
-        "deleteAfterTime": parseInt(deleteAfterTime.value, 10),
+        "deleteAfterTime": deleteAfterTimeValue,
         "deleteAfterViews": deleteAfterViewsValue,
         "hideTimeOfCreation": hideTimeOfCreation.checked,
         "hideNumberOfViews": hideNumberOfViews.checked
@@ -170,8 +170,45 @@ var onCreatePostButtonClick = function() {
                 var data = JSON.parse(this.responseText);
 
                 if (data.success) {
-                    var url = data.url;
+                    document.getElementById("post-url").value = data.url;
+
+                    document.getElementById("urlCopyButton").addEventListener("click", function() {
+                        var urlCopyButton = this;
+                        var postUrlElement = document.getElementById("post-url");
+
+                        urlCopyButton.disabled = true;
+                        postUrlElement.disabled = false;
+                        
+                        postUrlElement.select();
+                        document.execCommand("copy");
+                        postUrlElement.disabled = true;
+
+                        var text = urlCopyButton.innerHTML;
+                        urlCopyButton.innerHTML = "Copied to Clipboard!";
+                        setTimeout(() => {
+                            urlCopyButton.innerHTML = text;
+                            urlCopyButton.disabled = false;
+                        }, 1500);
+                    })
+
                     var qrCodeUrl = data.qrCodeUrl;
+
+                    document.getElementById("saveButtonDiv").innerHTML = `
+                        <a class="btn btn-danger btn-block" id="saveButton" href="${qrCodeUrl}" download="qrCode.png">
+                            <i class="fas fa-save"></i>&nbsp;Save QR Code
+                        </a>`;
+
+                    var viewButton = document.getElementById("viewButton");
+                    viewButton.addEventListener("click", function() {
+                        Swal.fire({
+                            imageUrl: qrCodeUrl,
+                            imageAlt: "Unable to load the QR Code."
+                        });
+                    });
+                    viewButton.disabled = false;
+
+                    document.getElementById("createPost").hidden = true;
+                    document.getElementById("postCreated").hidden = false;
                 }
                 else {
                     enableAllElements();
