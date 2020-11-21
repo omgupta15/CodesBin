@@ -95,8 +95,8 @@ var enableAllElements = function() {
         "syntax-highlighting",
         "delete-after-views",
         "delete-after-time",
-        "hide-time-of-creation",
-        "hide-number-of-views",
+        // "hide-time-of-creation",
+        // "hide-number-of-views",
         "createPostButton"
     ];
     for (var i = 0; i < elements.length; i++) {
@@ -112,8 +112,8 @@ var disableAllElements = function() {
         "syntax-highlighting",
         "delete-after-views",
         "delete-after-time",
-        "hide-time-of-creation",
-        "hide-number-of-views",
+        // "hide-time-of-creation",
+        // "hide-number-of-views",
         "createPostButton"
     ];
     for (var i = 0; i < elements.length; i++) {
@@ -169,14 +169,14 @@ var onCreatePostButtonClick = function() {
     }
 
     data = {
-        "data": text,
+        "data": text.value,
         "passwordProtected": passwordProtected,
         "verificationToken": verificationToken,
         "syntaxHighlighting": syntaxHighlighting.value,
         "deleteAfterTime": deleteAfterTimeValue,
         "deleteAfterViews": deleteAfterViewsValue,
-        "hideTimeOfCreation": hideTimeOfCreation.checked,
-        "hideNumberOfViews": hideNumberOfViews.checked
+        "hideTimeOfCreation": false, //hideTimeOfCreation.checked,
+        "hideNumberOfViews": false //hideNumberOfViews.checked
     }
     var xhttp = new XMLHttpRequest();
     xhttp.onerror = function() {
