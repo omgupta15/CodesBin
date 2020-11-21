@@ -375,6 +375,29 @@ def not_found(e):
 def generateToken(size):
     return "".join([random.choice(string.ascii_letters + string.digits + "_" + "-") for _ in range(size)])
 
+def checkPostsExpiry():
+    while True:
+        with getDatabase() as database:
+            with database.cursor() as cursor:
+                cursor.execute("""UPDATE Posts SET expired = 1, enabled = 0
+                  WHERE expired = 0 AND deleteAtTime < {} AND deleteAtTime > 0""".format(
+                    int(time.time()*1000)
+                ))
+                database.commit()
+        time.sleep(60)
+
+def checkPostsExpiry_KeepAlive():
+    while True:
+        t = threading.Thread(target = checkPostsExpiry)
+        t.start()
+        try:
+            t.join()
+        except Exception as e:
+            print("checkPostsExpiry_KeepAlive Error:", e)
+        time.sleep(30)
+
+threading.Thread(target = checkPostsExpiry_KeepAlive).start()
+
 app.run(port = 80, debug = True)
 
 ####################################################################################
