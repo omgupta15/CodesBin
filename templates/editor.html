@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style type="text/css" media="screen">
+    #editor { 
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+</style>
+</head>
+<body>
+
+<div id="editor"></div>
+<script src="/resources/plugins/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    document.getElementById("editor").innerHTML = `{{ post.text }}`;
+    var editor = ace.edit("editor");
+    editor.setOptions({
+        fontSize: "20pt",
+        readOnly: true,
+        highlightActiveLine: false,
+        highlightGutterLine: false
+    })
+    editor.renderer.$cursorLayer.element.style.opacity = 0;
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/javascript");
+    {% if post.syntaxHighlighting != "plain" %}
+        editor.setTheme("ace/theme/monokai");
+        {% if post.syntaxHighlighting != "code" %}
+            editor.session.setMode("ace/mode/{{ post.syntaxHighlighting }}");
+        {% endif %}
+    {% endif %}
+</script>
+</body>
+</html>
