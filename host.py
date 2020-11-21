@@ -18,8 +18,8 @@ limiter = flask_limiter.Limiter(app, key_func = get_remote_address)
 
 project = {
     "name": "CodesBin",
-    "website": "https://codesbin.my.to/",
-    "host": "codesbin.my.to"
+    "website": "http://localhost/",
+    "host": "localhost"
 }
 
 @app.route("/", methods = ["GET"])
@@ -33,6 +33,16 @@ def index():
     ip = flask.request.remote_addr
     
     return flask.render_template("index.html", config = project)
+
+@app.route("/p/<urlId>", methods = ["GET", "POST"])
+@limiter.limit("5/second")
+def post():
+    args = flask.request.args
+    data = flask.request.get_data(as_text = True)
+    headers = flask.request.headers
+    cookies = flask.request.cookies
+    method = flask.request.method
+    ip = flask.request.remote_addr
 
 @app.route("/api/create-post", methods = ["POST"])
 @limiter.limit("1/second")
@@ -55,7 +65,8 @@ def createPost():
         deleteAfterViews = int(data["deleteAfterViews"])
         hideTimeOfCreation = bool(data["hideTimeOfCreation"])
         hideNumberOfViews = bool(data["hideNumberOfViews"])
-    except:
+    except Exception as e:
+        print(e)
         return flask.jsonify({
             "success": False,
             "error": "invalid-json"
@@ -69,7 +80,7 @@ def createPost():
     elif passwordProtected and not verificationToken:
         invalidJson = True
 
-    elif deleteAfterTime < 0 or deleteAfterViews < 1:
+    elif deleteAfterTime < 0 or deleteAfterViews < 0:
         invalidJson = True
 
     if invalidJson:
@@ -139,9 +150,9 @@ def createPost():
                     passwordProtected,
                     verificationToken,
                     syntaxHighlighting,
-                    deleteAfterViews,
+                    deleteAfterViews if deleteAfterViews else None,
                     int(deleteAfterTime*60*1000),
-                    int((time.time()*1000) + (deleteAfterTime*60*1000)),
+                    int((time.time()*1000) + (deleteAfterTime*60*1000)) if deleteAfterTime else None,
 
                     qrCodeUrl,
                     -1
