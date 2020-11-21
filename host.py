@@ -1,7 +1,7 @@
 import qrcode, base64, json, os, math, threading, string, random, waitress
 import flask, mysql.connector, flask_limiter, time, datetime
 from AES import AES
-from flask_limiter.util import get_remote_address
+# from flask_limiter.util import get_remote_address
 
 os.system("title CodesBin Host")
 
@@ -14,12 +14,18 @@ def getDatabase():
     )
 
 app = flask.Flask(__name__, static_folder = "resources/")
+
+def get_remote_address():
+    return flask.request.headers.get("X-Real-IP") # Using proxy_pass in nginx & setting header for real ip.
+
 limiter = flask_limiter.Limiter(app, key_func = get_remote_address)
 
 project = {
     "name": "CodesBin",
-    "website": "http://localhost/",
-    "host": "localhost"
+    "website": "https://codesbin.com/",
+    "host": "codesbin.com",
+    "ip": "0.0.0.0",
+    "port": 1515
 }
 
 @app.route("/", methods = ["GET"])
@@ -31,6 +37,9 @@ def index():
     cookies = flask.request.cookies
     method = flask.request.method
     ip = flask.request.remote_addr
+
+    if headers.get("Host") != project["host"]:
+        return flask.redirect(project["website"])
     
     return flask.render_template("index.html", config = project)
 
@@ -43,6 +52,9 @@ def post(urlId):
     cookies = flask.request.cookies
     method = flask.request.method
     ip = flask.request.remote_addr
+
+    if headers.get("Host") != project["host"]:
+        return flask.redirect(project["website"] + f"p/{urlId}")
     
     with getDatabase() as database:
         with database.cursor() as cursor:
@@ -169,6 +181,9 @@ def postEditor(urlId):
     method = flask.request.method
     ip = flask.request.remote_addr
 
+    if headers.get("Host") != project["host"]:
+        return flask.redirect(project["website"] + f"p/editor/{urlId}")
+
     with getDatabase() as database:
         with database.cursor() as cursor:
             cursor.execute("SELECT id, enabled FROM Posts WHERE urlId = %s", (urlId,))
@@ -245,6 +260,9 @@ def createPost():
     cookies = flask.request.cookies
     method = flask.request.method
     ip = flask.request.remote_addr
+
+    if headers.get("Host") != project["host"]:
+        return flask.redirect(project["website"] + "api/create-post")
 
     try:
         data = json.loads(data)
@@ -372,6 +390,10 @@ def createPost():
 def not_found(e):
     return "<h1>This post was either deleted or does not exist.</h1>"
 
+@app.errorhandler(500)
+def internal_server_error(e):
+    return "<h1>Internal Server Error.</h1>"
+
 def generateToken(size):
     return "".join([random.choice(string.ascii_letters + string.digits + "_" + "-") for _ in range(size)])
 
@@ -397,8 +419,9 @@ def checkPostsExpiry_KeepAlive():
         time.sleep(30)
 
 threading.Thread(target = checkPostsExpiry_KeepAlive).start()
-
-app.run(port = 80, debug = True)
+# app.run(port = 80, debug = True)
+# Using waitress WSGI:
+waitress.run(host = project["ip"], port = project["port"])
 
 ####################################################################################
 
