@@ -23,8 +23,6 @@ var encrypt = function(text, password) {
     return iv.concat(encrypted.ciphertext).toString(CryptoJS.enc.Base64);
 }
 var decrypt = function(encryptedText, password) {
-    console.log(encryptedText);
-    console.log(password);
     try {
         var ciphertext = CryptoJS.enc.Base64.parse(encryptedText);
         var iv = ciphertext.clone();
@@ -33,9 +31,7 @@ var decrypt = function(encryptedText, password) {
         ciphertext.words.splice(0, 4);
         ciphertext.sigBytes -= 16;
         var decrypted = CryptoJS.AES.decrypt({ciphertext: ciphertext}, CryptoJS.enc.Utf8.parse(generateMD5(password)), {iv: iv});
-        console.log(decrypted);
         var decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
-        console.log(decrypted);
 
         if (!decryptedText) {
             return {success: false};
@@ -60,7 +56,6 @@ var decrypt = function(encryptedText, password) {
             showLoaderOnConfirm: true,
             preConfirm: (password) => {
                 response = decrypt("{{ post.text }}", password);
-                console.log(response)
                 if (!response.success) {
                     Swal.showValidationMessage("Invalid Password Entered.");
                 }
@@ -70,8 +65,6 @@ var decrypt = function(encryptedText, password) {
             },
             allowOutsideClick: () => false
         }).then((result) => {
-            console.log(result);
-            console.log(result.value);
             if (result.isConfirmed) {
                 Swal.fire(
                     "Text decrypted successfully!",

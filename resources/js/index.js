@@ -459,11 +459,3 @@ for (var name in languages) {
     element.innerHTML = displayName;
     optGroup.appendChild(element);
 }
-
-// text = "123";
-// password = "123";
-// encryptedText = encrypt(text, password)
-// console.log(encryptedText);
-
-// decryptedText = decrypt(encryptedText, password);
-// console.log(decryptedText);

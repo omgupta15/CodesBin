@@ -80,7 +80,6 @@ def post(urlId):
             "lastView": result[14],
             "linesCount": result[15]
         }
-        print(post)
         return flask.render_template("post.html", config = project, post = post)
 
 @app.route("/p/editor/<urlId>", methods = ["GET"])
@@ -129,7 +128,6 @@ def postEditor(urlId):
             "lastView": result[14],
             "linesCount": result[15]
         }
-        print(post)
         if not post["passwordProtected"]:
             if not post["deleteAfterViews"]:
                 with getDatabase() as database:
@@ -169,7 +167,6 @@ def createPost():
     ip = flask.request.remote_addr
 
     try:
-        print(data)
         data = json.loads(data)
 
         text = str(data["data"])
@@ -181,8 +178,7 @@ def createPost():
         hideTimeOfCreation = bool(data["hideTimeOfCreation"])
         hideNumberOfViews = bool(data["hideNumberOfViews"])
         linesCount = int(data["linesCount"])
-    except Exception as e:
-        print(e)
+    except:
         return flask.jsonify({
             "success": False,
             "error": "invalid-json"
