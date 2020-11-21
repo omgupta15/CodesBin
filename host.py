@@ -420,7 +420,16 @@ def checkPostsExpiry_KeepAlive():
 threading.Thread(target = checkPostsExpiry_KeepAlive).start()
 # app.run(port = 80, debug = True)
 # Using waitress WSGI:
-waitress.run(host = project["ip"], port = project["port"])
+waitress.serve(app, host = project["ip"], port = project["port"])
+
+####################################################################################
+
+# # CREATING THE DATABASE:
+
+# with getDatabase() as mysql:
+#     with mysql.cursor() as cursor:
+#         cursor.execute("CREATE DATABASE CodesBin;")
+#         mysql.commit()
 
 ####################################################################################
 
@@ -453,12 +462,3 @@ waitress.run(host = project["ip"], port = project["port"])
 #             )
 #         """)
 #         database.commit()
-
-####################################################################################
-
-# # CREATING THE DATABASE:
-
-# with getDatabase() as mysql:
-#     with mysql.cursor() as cursor:
-#         cursor.execute("CREATE DATABASE CodesBin;")
-#         mysql.commit()
