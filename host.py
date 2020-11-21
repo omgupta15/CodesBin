@@ -84,6 +84,81 @@ def post(urlId):
         }
         return flask.render_template("post.html", config = project, post = post)
 
+    elif method == "POST":
+        try:
+            data = json.loads(data)
+            verificationToken = str(data["verificationToken"])
+        except:
+            return flask.jsonify({
+                "success": False,
+                "error": "invalid-json"
+            }), 400
+
+        if len(verificationToken) > 40:
+            return flask.jsonify({
+                "success": False,
+                "error": "invalid-json"
+            }), 400
+
+        with getDatabase() as database:
+            with database.cursor() as cursor:
+                cursor.execute("SELECT * FROM Posts WHERE id = %s", (postId,))
+                result = cursor.fetchone()
+
+        post = {
+            "created": result[1],
+            "urlId": result[2],
+            "enabled": result[3],
+            "expired": result[4],
+            "views": result[5],
+            "text": result[6],
+            "passwordProtected": result[7],
+            "verificationToken": result[8],
+            "syntaxHighlighting": result[9],
+            "deleteAfterViews": result[10],
+            "deleteAtTime": result[12],
+            "hideTimeOfCreation": result[13],
+            "hideNumberOfViews": result[14],
+            "qrCodeUrl": result[15],
+            "lastView": result[16],
+            "linesCount": result[17]
+        }
+
+        print(verificationToken)
+        print(post["verificationToken"])
+
+        if post["verificationToken"] != verificationToken:
+            return flask.jsonify({
+                "success": False
+            }), 401
+
+        if post["passwordProtected"]:
+            if not post["deleteAfterViews"]:
+                with getDatabase() as database:
+                    with database.cursor() as cursor:
+                        cursor.execute("UPDATE Posts SET views = views + 1 WHERE id = %s", (postId,))
+                        database.commit()
+
+            else:
+                if post["deleteAfterViews"] == 1:
+                    with getDatabase() as database:
+                        with database.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE Posts SET views = views + 1, enabled = %s, expired = %s, deleteAfterViews = deleteAfterViews - 1 WHERE id = %s",
+                                (False, True, postId,)
+                            )
+                            database.commit()
+
+                else:
+                    with getDatabase() as database:
+                        with database.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE Posts SET views = views + 1, deleteAfterViews = deleteAfterViews - 1 WHERE id = %s",
+                                (postId,)
+                            )
+                            database.commit()
+        return flask.jsonify({"success": True})
+
 @app.route("/p/editor/<urlId>", methods = ["GET"])
 @limiter.limit("5/second")
 def postEditor(urlId):
@@ -183,6 +258,7 @@ def createPost():
         hideTimeOfCreation = bool(data["hideTimeOfCreation"])
         hideNumberOfViews = bool(data["hideNumberOfViews"])
         linesCount = int(data["linesCount"])
+        print(verificationToken)
     except:
         return flask.jsonify({
             "success": False,
@@ -291,6 +367,10 @@ def createPost():
         "url": url,
         "qrCodeUrl": project["website"] + qrCodeUrl.strip("/")
     })
+
+@app.errorhandler(404)
+def not_found(e):
+    return "<h1>This post was either deleted or does not exist.</h1>"
 
 def generateToken(size):
     return "".join([random.choice(string.ascii_letters + string.digits + "_" + "-") for _ in range(size)])

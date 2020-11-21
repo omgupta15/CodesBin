@@ -145,7 +145,7 @@ var onCreatePostButtonClick = function() {
 
     if (password.value) {
         passwordProtected = true;
-        verificationToken = generateVerificationToken(text.value, password.value);
+        verificationToken = generateVerificationToken(text, password.value);
         var text = encrypt(text, password.value);
     }
     

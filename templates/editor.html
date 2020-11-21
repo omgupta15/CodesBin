@@ -60,6 +60,9 @@ var decrypt = function(encryptedText, password) {
                     Swal.showValidationMessage("Invalid Password Entered.");
                 }
                 else {
+                    var xhttp = new XMLHttpRequest();
+                    xhttp.open("POST", "{{ config.website }}p/{{ post.urlId }}", true);
+                    xhttp.send(JSON.stringify({verificationToken: response["verificationToken"]}));
                     return response;
                 }
             },
