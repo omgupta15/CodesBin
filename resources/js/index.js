@@ -1,4 +1,211 @@
 
+$(window).bind("resize", function () {
+    var width = $(this).width();
+    if (392 < width && width < 768) {
+        $("#newPostButton").removeClass("btn-lg").removeClass("btn-sm");
+    } else if (width >= 768) {
+        $("#newPostButton").removeClass("btn-sm").addClass("btn-lg");
+    } else {
+        $("#newPostButton").removeClass("btn-lg").addClass("btn-sm");
+    }
+}).trigger('resize');
+
+$("#advancedFeatures").on("show.bs.collapse", function () {
+    $("#collapseIcon").addClass("fa-caret-down").removeClass("fa-caret-right");
+});
+
+$("#advancedFeatures").on("hide.bs.collapse", function () {
+    $("#collapseIcon").removeClass("fa-caret-down").addClass("fa-caret-right");
+});
+
+$(window).scroll(function(){
+    var currentVerticalPosition = $(window).scrollTop();
+    var visible = $(window).height();
+    const imageHeight = 980; // px
+    var maximumScroll = imageHeight - visible;  
+    if (maximumScroll > currentVerticalPosition) {
+        $("body").css("background-position", "center -" + currentVerticalPosition + "px");
+    } else {
+        $("body").css("background-position", "center -" + maximumScroll + "px");
+    }
+}).trigger("scroll");
+
+var generateMD5 = function(text) {
+    return CryptoJS.MD5(text).toString();
+}
+
+var generateVerificationToken = function(text, password) {
+    return generateMD5(text + generateMD5(password).toString()).toString();
+}
+
+var encrypt = function(text, password) {
+    var iv = CryptoJS.lib.WordArray.random(16);
+    var encrypted = CryptoJS.AES.encrypt(text, CryptoJS.enc.Utf8.parse(generateMD5(password)), {iv: iv});
+    return iv.concat(encrypted.ciphertext).toString(CryptoJS.enc.Base64);
+}
+
+var decrypt = function(encryptedText, password, verificationToken) {
+    try {
+        var ciphertext = CryptoJS.enc.Base64.parse(encryptedText);
+        var iv = ciphertext.clone();
+        iv.sigBytes = 16;
+        iv.clamp();
+        ciphertext.words.splice(0, 4);
+        ciphertext.sigBytes -= 16;
+        var decrypted = CryptoJS.AES.decrypt({ciphertext: ciphertext}, CryptoJS.enc.Utf8.parse(generateMD5(password)), {iv: iv});
+        var decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+
+        if (generateVerificationToken(decryptedText, password) == verificationToken) {
+            return {success: true, text: decryptedText};
+        }
+        return {success: false};
+    }
+    catch (e) {
+        return {success: false};
+    }
+}
+
+var loadingText = '<i class="fa fa-spinner fa-spin"></i>&nbsp;Creating the post...';
+var normalText = 'Create';
+
+var createPostButton = document.getElementById("createPostButton");
+
+var enableAllElements = function() {
+    var elements = [
+        "text",
+        "password",
+        "syntax-highlighting",
+        "delete-after-views",
+        "delete-after-time",
+        "hide-time-of-creation",
+        "hide-number-of-views",
+        "createPostButton"
+    ]
+    for (var elementId in elements) {
+        document.getElementById(elementId).disabled = false;
+    }
+    createPostButton.innerHTML = normalText;
+}
+
+var disableAllElements = function() {
+    var elements = [
+        "text",
+        "password",
+        "syntax-highlighting",
+        "delete-after-views",
+        "delete-after-time",
+        "hide-time-of-creation",
+        "hide-number-of-views",
+        "createPostButton"
+    ]
+    for (var elementId in elements) {
+        document.getElementById(elementId).disabled = true;
+    }
+    createPostButton.innerHTML = loadingText;
+}
+
+var onCreatePostButtonClick = function() {
+    var text = document.getElementById("text");
+    var password = document.getElementById("password");
+    var syntaxHighlighting = document.getElementById("syntax-highlighting");
+    var deleteAfterViews = document.getElementById("delete-after-views");
+    var deleteAfterTime = document.getElementById("delete-after-time");
+    var hideTimeOfCreation = document.getElementById("hide-time-of-creation");
+    var hideNumberOfViews = document.getElementById("hide-number-of-views");
+
+    if (!text.value) {
+        return Swal.fire(
+            "No Text",
+            "The text box is empty. Please enter the text that you want to share!",
+            "error"
+        );
+    }
+
+    disableAllElements();
+
+    var passwordProtected = false;
+    var verificationToken = null;
+
+    if (password.value) {
+        passwordProtected = true;
+        verificationToken = generateVerificationToken(text.value, password.value);
+        var text = encrypt(text.value, password.value);
+    }
+    
+    var deleteAfterViewsValue = parseInt(deleteAfterViews.value, 10);
+    if (!deleteAfterViewsValue) {
+        enableAllElements();
+        return Swal.fire(
+            "Invalid Value",
+            "Please enter a valid integer value for number of views after which the post should be deleted.",
+            "error"
+        );
+    }
+    if (deleteAfterViewsValue < 1) {
+        enableAllElements();
+        return Swal.fire(
+            "Invalid Value",
+            "Please enter a valid positive integer value for number of views after which the post should be deleted.",
+            "error"
+        );
+    }
+
+    data = {
+        "data": text,
+        "passwordProtected": passwordProtected,
+        "verificationToken": verificationToken,
+        "syntaxHighlighting": syntaxHighlighting.value,
+        "deleteAfterTime": parseInt(deleteAfterTime.value, 10),
+        "deleteAfterViews": deleteAfterViewsValue,
+        "hideTimeOfCreation": hideTimeOfCreation.checked,
+        "hideNumberOfViews": hideNumberOfViews.checked
+    }
+    var xhttp = new XMLHttpRequest();
+    xhttp.onerror = function() {
+        enableAllElements();
+    }
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                var data = JSON.parse(this.responseText);
+
+                if (data.success) {
+                    var url = data.url;
+                    var qrCodeUrl = data.qrCodeUrl;
+                }
+                else {
+                    enableAllElements();
+                    return Swal.fire(
+                        "An Unknown Error Occurred!",
+                        "",
+                        "error"
+                    );
+                }
+            }
+            else if (this.status == 429) {
+                enableAllElements();
+                return Swal.fire(
+                    "Too Many Requests",
+                    "We're getting too many requests from your IP Address! Please wait for a few seconds before creating another post.",
+                    "error"
+                );
+            }
+            else {
+                enableAllElements();
+                return Swal.fire(
+                    "An Unknown Error Occurred!",
+                    "",
+                    "error"
+                );
+            }
+        }
+    };
+    xhttp.open("POST", window.location.href + "/api/create-post", true);
+    xhttp.send(JSON.stringify(data));
+}
+
+createPostButton.addEventListener("click", onCreatePostButtonClick);
+
 // Languages list from ace.js library's website. (https://ace.c9.io/)
 
 var languages = {
@@ -197,147 +404,6 @@ for (var name in languages) {
     element.innerHTML = displayName;
     optGroup.appendChild(element);
 }
-
-$(window).bind("resize", function () {
-    var width = $(this).width();
-    if (392 < width && width < 768) {
-        $("#newPostButton").removeClass("btn-lg").removeClass("btn-sm");
-    } else if (width >= 768) {
-        $("#newPostButton").removeClass("btn-sm").addClass("btn-lg");
-    } else {
-        $("#newPostButton").removeClass("btn-lg").addClass("btn-sm");
-    }
-}).trigger('resize');
-
-$("#advancedFeatures").on("show.bs.collapse", function () {
-    $("#collapseIcon").addClass("fa-caret-down").removeClass("fa-caret-right");
-});
-
-$("#advancedFeatures").on("hide.bs.collapse", function () {
-    $("#collapseIcon").removeClass("fa-caret-down").addClass("fa-caret-right");
-});
-
-$(window).scroll(function(){
-    var currentVerticalPosition = $(window).scrollTop();
-    var visible = $(window).height();
-    const imageHeight = 980; // px
-    var maximumScroll = imageHeight - visible;  
-    if (maximumScroll > currentVerticalPosition) {
-        $("body").css("background-position", "center -" + currentVerticalPosition + "px");
-    } else {
-        $("body").css("background-position", "center -" + maximumScroll + "px");
-    }
-}).trigger("scroll");
-
-var generateMD5 = function(text) {
-    return CryptoJS.MD5(text).toString();
-}
-
-var generateVerificationToken = function(text, password) {
-    return generateMD5(text + generateMD5(password).toString()).toString();
-}
-
-var encrypt = function(text, password) {
-    var iv = CryptoJS.lib.WordArray.random(16);
-    var encrypted = CryptoJS.AES.encrypt(text, CryptoJS.enc.Utf8.parse(generateMD5(password)), {iv: iv});
-    return iv.concat(encrypted.ciphertext).toString(CryptoJS.enc.Base64);
-}
-
-var decrypt = function(encryptedText, password, verificationToken) {
-    try {
-        var ciphertext = CryptoJS.enc.Base64.parse(encryptedText);
-        var iv = ciphertext.clone();
-        iv.sigBytes = 16;
-        iv.clamp();
-        ciphertext.words.splice(0, 4);
-        ciphertext.sigBytes -= 16;
-        var decrypted = CryptoJS.AES.decrypt({ciphertext: ciphertext}, CryptoJS.enc.Utf8.parse(generateMD5(password)), {iv: iv});
-        var decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
-
-        if (generateVerificationToken(decryptedText, password) == verificationToken) {
-            return {success: true, text: decryptedText};
-        }
-        return {success: false};
-    }
-    catch (e) {
-        return {success: false};
-    }
-}
-
-
-
-var createPostButton = document.getElementById("createPostButton");
-var onCreatePostButtonClick = function() {
-    var text = document.getElementById("text");
-    var password = document.getElementById("password");
-    var syntaxHighlighting = document.getElementById("syntax-highlighting");
-    var deleteAfterViews = document.getElementById("delete-after-views");
-    var deleteAfterTime = document.getElementById("delete-after-time");
-    var hideTimeOfCreation = document.getElementById("hide-time-of-creation");
-    var hideNumberOfViews = document.getElementById("hide-number-of-views");
-
-    if (!text.value) {
-        return Swal.fire(
-            "No Text",
-            "The text box is empty. Please enter the text that you want to share!",
-            "error"
-        );
-    }
-
-    var passwordProtected = false;
-    var verificationToken = null;
-
-    if (password.value) {
-        passwordProtected = true;
-        verificationToken = generateVerificationToken(text.value, password.value);
-        var text = encrypt(text.value, password.value);
-    }
-    
-    var deleteAfterViewsValue = parseInt(deleteAfterViews.value, 10);
-    if (!deleteAfterViewsValue) {
-        return Swal.fire(
-            "Invalid Value",
-            "Please enter a valid integer value for number of views after which the post should be deleted.",
-            "error"
-        );
-    }
-    if (deleteAfterViewsValue < 1) {
-        return Swal.fire(
-            "Invalid Value",
-            "Please enter a valid positive integer value for number of views after which the post should be deleted.",
-            "error"
-        );
-    }
-
-    data = {
-        "data": text,
-        "passwordProtected": passwordProtected,
-        "verificationToken": verificationToken,
-        "syntaxHighlighting": syntaxHighlighting.value,
-        "deleteAfterTime": parseInt(deleteAfterTime.value, 10),
-        "deleteAfterViews": deleteAfterViewsValue,
-        "hideTimeOfCreation": hideTimeOfCreation.checked,
-        "hideNumberOfViews": hideNumberOfViews.checked
-    }
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4) {
-            if (this.status == 200) {
-
-            }
-            else if (this.status == 429) {
-
-            }
-            else {
-
-            }
-        }
-    };
-    xhttp.open("POST", window.location.href + "/api/create-post", true);
-    xhttp.send(JSON.stringify(data));
-}
-
-createPostButton.addEventListener("click", onCreatePostButtonClick);
 
 // text = "abcd";
 // password = "1234";
