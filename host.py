@@ -1,6 +1,5 @@
 import qrcode, base64, json, os, math, threading, string, random, waitress
 import flask, mysql.connector, flask_limiter, time, datetime
-from AES import AES
 # from flask_limiter.util import get_remote_address
 
 os.system("title CodesBin Host")
